@@ -1,2 +1,2 @@
-# motion_detection_node
-Detection motion through infrared camera
+# RoboCat DeepRacer
+### Use DeepRacer to scare mice away in the night
