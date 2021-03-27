@@ -8,8 +8,6 @@ on specified object, providing action trigger for rc_navigation_pkg.
 The node defines:
     image_subscriber: A subscriber to the /sensor_fusion_pkg/sensor_msg published
                       by the sensor_fusion_pkg with sensor data.
-    display_image_publisher: A publisher to publish the Image message using
-                             web_video_server.
     mouse_publisher: A publisher to publish whether a mouse was detected or not.
 """
 
@@ -26,10 +24,9 @@ from rclpy.qos import (QoSProfile,
                        QoSReliabilityPolicy)
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-
-from deepracer_interfaces_pkg.msg import (EvoSensorMsg,
-                                          DetectionDeltaMsg)
-from mouse_detection_pkg import utils
+from deepracer_interfaces_pkg.msg import EvoSensorMsg
+from mouse_detection_pkg import (constants,
+                                  utils)
 
 class MouseDetectionNode(Node):
     """Node responsible for collecting sensor data (camera images) from sensor_fusion_pkg
@@ -43,9 +40,9 @@ class MouseDetectionNode(Node):
         self.get_logger().info("mouse_detection_node started.")
 
         # Initialize variables
-        self.previous_sensor_data = None
-        self.h = 160
-        self.w = 120
+        self.previous_sensor_data = np.zeros(shape=(3,480,640))
+        self.h = 480
+        self.w = 640
 
         # Double buffer to hold the input images for inference.
         self.input_buffer = utils.DoubleBuffer(clear_data_on_get=True)
@@ -62,9 +59,9 @@ class MouseDetectionNode(Node):
                                                          qos_profile)
 
         # Creating publisher for confidence score of mouse detection.
-        self.delta_publisher = self.create_publisher(MouseDetectionConfidence,
-                                                     constants.MOUSE_PUBLISHER_TOPIC,
-                                                     qos_profile)
+        #self.delta_publisher = self.create_publisher(MouseDetectionConfidence,
+        #                                             constants.MOUSE_PUBLISHER_TOPIC,
+        #                                             qos_profile)
         self.bridge = CvBridge()
 
         # Launching a separate thread to run inference.
@@ -104,14 +101,12 @@ class MouseDetectionNode(Node):
         """
         image = self.bridge.imgmsg_to_cv2(sensor_data.images[0])
         ih, iw = image.shape[:-1]
-        self.get_logger().info("Height and width of images")
-        self.get_logger().info(ih)
-        self.get_logger().info(iw)
         # Resize to required input size
         if (ih, iw) != (int(self.h), int(self.w)):
             image = cv2.resize(image, (int(self.w), int(self.h)))
         # Change data layout from HWC to CHW.
         image = image.transpose((2, 0, 1))
+        self.get_logger().info(str(image.shape))
         return image
 
     def run_inference(self):
@@ -129,17 +124,22 @@ class MouseDetectionNode(Node):
                 input_data = {}
                 input_data['current_sensor_data'] = self.preprocess(sensor_data)
                 data_type = str(type(input_data['current_sensor_data']))
-                self.get_logger().info(f"Type of output from self.preprocess - {data_type}")
                 
                 # Initialize previous image
-                if previous_sensor_data == None:
-                    previous_sensor_data = input['current_sensor_data']
+                if np.array_equal(self.previous_sensor_data, np.zeros(shape=(3,480,640))):
+                    self.previous_sensor_data = input['current_sensor_data']
                 else:
                     input['previous_sensor_data'] = self.previous_sensor_data
                     self.previous_sensor_data = input['current_sensor_data']
 
-                # Assume being at target position.
-                detection_delta = cv2.absdiff(input['previous_sensor_data'], input['current_sensor_data'])
+                # Detect changes in images
+                #detection_delta = cv2.absdiff(input['previous_sensor_data'], input['current_sensor_data'])
+                detection_delta = cv2.subtract(input['previous_sensor_data'], input['current_sensor_data'])
+                b, g, r = cv2.split(detection_delta)
+                self.get_logger().info("Image details below.....")
+                self.get_logger().info(str(b))
+                self.get_logger().info(str(g))
+                self.get_logger().info(str(r))
                 self.get_logger().info(f"detection_delta is: {detection_delta}")
                 self.delta_publisher.publish(detection_delta)
 
