@@ -1,4 +1,5 @@
 from setuptools import setup
+import os
 
 package_name = 'rc_navigation_pkg'
 
