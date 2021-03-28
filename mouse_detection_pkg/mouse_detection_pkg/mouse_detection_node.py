@@ -25,7 +25,7 @@ from rclpy.qos import (QoSProfile,
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from deepracer_interfaces_pkg.msg import (EvoSensorMsg,
-                                          ContoursCountMsg)
+                                          MouseDetectionMsg)
 from mouse_detection_pkg import (constants,
                                   utils)
 
@@ -42,8 +42,10 @@ class MouseDetectionNode(Node):
 
         # Initialize variables
         self.previous_sensor_data = np.zeros(shape=(3,480,640))
+        self.current_sensor_data = np.zeros(shape=(3,480,640))
         self.h = 480
         self.w = 640
+        self.mouse_flag = False
 
         # Double buffer to hold the input images for inference.
         self.input_buffer = utils.DoubleBuffer(clear_data_on_get=True)
@@ -60,7 +62,7 @@ class MouseDetectionNode(Node):
                                                          qos_profile)
 
         # Creating publisher for confidence score of mouse detection.
-        self.contour_publisher = self.create_publisher(ContoursCountMsg,
+        self.mouse_publisher = self.create_publisher(MouseDetectionMsg,
                                                      constants.MOUSE_PUBLISHER_TOPIC,
                                                      qos_profile)
         self.bridge = CvBridge()
@@ -121,26 +123,30 @@ class MouseDetectionNode(Node):
                 start_time = time.time()
 
                 # Pre-process input.
-                current_sensor_data = self.preprocess(sensor_data)
+                self.current_sensor_data = self.preprocess(sensor_data)
                 
                 # Initialize previous image
-                previous_sensor_data = self.previous_sensor_data
-                zero_numpy_array = np.zeros(shape=(3,480,640))
-                if np.array_equal(previous_sensor_data, zero_numpy_array):
-                    previous_sensor_data = self.preprocess(sensor_data)
-                else:
-                    self.previous_sensor_data = current_sensor_data
+                if np.array_equal(self.previous_sensor_data, np.zeros(shape=(3,480,640))):
+                    self.previous_sensor_data = self.current_sensor_data
 
                 # Detect changes in images
-                detection_delta = cv2.absdiff(previous_sensor_data, current_sensor_data)
+                detection_delta = cv2.absdiff(self.previous_sensor_data, self.current_sensor_data)
                 ret, thresh = cv2.threshold(detection_delta, 127, 255, 0)
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 self.get_logger().info(f"Number of contours: {str(len(contours))}")
+                if len(contours) > 0 and len(contours) < 6:
+                    self.mouse_flag = True
 
                 # Publish to object_detection_delta topic.
-                self.get_logger().info("Publishing number of contours")
-                self.contour_publisher.publish(len(contours))
+                self.get_logger().info(f"Mouse detected: {self.mouse_flag}")
+                mouse_message = MouseDetectionMsg()
+                mouse_message.is_mouse = self.mouse_flag
+                self.mouse_publisher.publish(mouse_message)
 
+                # Save the current image as previous image and reset mouse_flag
+                self.previous_sensor_data = self.current_sensor_data
+                self.mouse_flag = False
+                
                 self.get_logger().info(f"Total execution time = {time.time() - start_time}")
         except Exception as ex:
             self.get_logger().error(f"Failed inference step: {ex}")
