@@ -25,8 +25,6 @@ The node defines:
                                 published by the mouse_detection_pkg with the mouse flag.
     The node defines:
     action_publisher: A publisher to publish the action (angle and throttle values).
-    set_max_speed_service: A service to dynamically set MAX_SPEED_PCT representing
-                           the max speed percentage scale as per request.
 """
 import time
 import signal
@@ -38,10 +36,8 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import (QoSProfile,
                        QoSHistoryPolicy,
                        QoSReliabilityPolicy)
-
 from deepracer_interfaces_pkg.msg import (MouseDetectionMsg,
                                           ServoCtrlMsg)
-from deepracer_interfaces_pkg.srv import SetMaxSpeedSrv
 from rc_navigation_pkg import (constants,
                                 utils)
 
@@ -60,7 +56,7 @@ class RCNavigationNode(Node):
         # Double buffer to hold the mouse flag from Mouse Detection.
         self.mouse_buffer = utils.DoubleBuffer(clear_data_on_get=True)
 
-        # Create subscription to detection deltas from object_detection_node.
+        # Create subscription to detection mouse from mouse_detection_node.
         self.mouse_detection_subscriber = \
             self.create_subscription(MouseDetectionMsg,
                                      constants.MOUSE_DETECTION_TOPIC,
@@ -71,11 +67,6 @@ class RCNavigationNode(Node):
         self.action_publisher = self.create_publisher(ServoCtrlMsg,
                                                       constants.ACTION_PUBLISH_TOPIC,
                                                       qos_profile)
-
-        # Service to dynamically set MAX_SPEED_PCT.
-        self.set_max_speed_service = self.create_service(SetMaxSpeedSrv,
-                                                         constants.SET_MAX_SPEED_SERVICE_NAME,
-                                                         self.set_max_speed_cb)
 
         # Initializing the msg to be published.
         msg = ServoCtrlMsg()
@@ -91,7 +82,7 @@ class RCNavigationNode(Node):
         self.thread = threading.Thread(target=self.action_publish, args=(msg,))
         self.thread.start()
         self.thread_initialized = True
-        self.get_logger().info(f"Waiting for input delta: {constants.OBJECT_DETECTION_DELTA_TOPIC}")
+        self.get_logger().info(f"Waiting for input mouse flag: {constants.MOUSE_DETECTION_TOPIC}")
 
     def wait_for_thread(self):
         """Function which joins the created background thread.
@@ -156,23 +147,24 @@ class RCNavigationNode(Node):
                 # Get a new message to plan action on
                 mouse_flag = self.mouse_buffer.get()
 
+                # Publish msg based on mouse detection flag
                 if mouse_flag.is_mouse:
                     # Move forward
                     msg.angle, msg.throttle = constants.ACTION_SPACE[2][constants.ActionSpaceKeys.ANGLE],\
                                                   constants.ACTION_SPACE[2][constants.ActionSpaceKeys.THROTTLE]
-                    self.get_logger.info(f"{msg.angle}, {msg.throttle}")
+                    self.get_logger().info(f"Forward: {msg.angle}, {msg.throttle}")
+                    self.action_publisher.publish(msg)
                     time.sleep(constants.DEFAULT_SLEEP)
                     # Move backward
                     msg.angle, msg.throttle = constants.ACTION_SPACE[3][constants.ActionSpaceKeys.ANGLE],\
                                                   constants.ACTION_SPACE[3][constants.ActionSpaceKeys.THROTTLE]
-                    self.get_logger.info(f"{msg.angle}, {msg.throttle}")
+                    self.get_logger().info(f"Reverse: {msg.angle}, {msg.throttle}")
+                    self.action_publisher.publish(msg)
                 else:
+                    self.get_logger().info("No Action")
                     msg.angle, msg.throttle = constants.ACTION_SPACE[1][constants.ActionSpaceKeys.ANGLE],\
                                                   constants.ACTION_SPACE[1][constants.ActionSpaceKeys.THROTTLE]
-                # Publish msg based on action planned and mapped from a new object detection.
-                self.action_publisher.publish(msg)
-                max_speed_pct = self.max_speed_pct
-
+                    self.action_publisher.publish(msg)
                 # Sleep for a default amount of time before checking if new data is available.
                 time.sleep(constants.DEFAULT_SLEEP)
                 # If new data is not available within default time, do nothing.
@@ -182,7 +174,7 @@ class RCNavigationNode(Node):
                     # Publish blind action
                     self.action_publisher.publish(msg)
                     # Sleep before checking if new data is available.
-                    time.sleep(0.1)
+                    time.sleep(constants.DEFAULT_SLEEP)
         except Exception as ex:
             self.get_logger().error(f"Failed to publish action to servo: {ex}")
             # Stop the car
@@ -231,3 +223,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
