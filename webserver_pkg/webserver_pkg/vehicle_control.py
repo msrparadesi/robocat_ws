@@ -196,7 +196,7 @@ def api_manual_drive():
 
 @VEHICLE_CONTROL_BLUEPRINT.route("/api/drive_mode", methods=["PUT", "POST"])
 def api_set_drive_mode():
-    """API to toggle the drive mode between Autonomous/Manual/Follow the Leader(FTL) mode.
+    """API to toggle the drive mode between Autonomous/Manual/RoboCat mode.
 
     Returns:
         dict: Execution status if the API call was successful and error
@@ -213,7 +213,7 @@ def api_set_drive_mode():
     elif drive_mode == "auto":
         drive_mode_state = 1
     else:
-        # Follow the Leader(FTL) mode.
+        # RoboCat mode.
         drive_mode_state = 3
 
     try:

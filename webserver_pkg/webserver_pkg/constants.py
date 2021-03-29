@@ -187,7 +187,7 @@ MODE_DICT = {
     0: "manual",
     1: "autonomous",
     2: "calibration",
-    3: "followtheleader"
+    3: "robocat"
 }
 
 
