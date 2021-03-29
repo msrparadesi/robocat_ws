@@ -206,14 +206,14 @@ namespace SysCtrl {
         bool isActive_;
     };
 
-    class FTLDriveCtrl : public CtrlStateBase
+    class RCDriveCtrl : public CtrlStateBase
     {
     /// Control state for follow the leader driving mode.
     public:
         /// @param nodeHdl Reference to the node handler of the control node.
         /// @param subName Topic to subscribe to for servo messages.
-        FTLDriveCtrl(std::shared_ptr<rclcpp::Node> ctrlNodePtr, const std::string &subName);
-        virtual ~FTLDriveCtrl() = default;
+        RCDriveCtrl(std::shared_ptr<rclcpp::Node> ctrlNodePtr, const std::string &subName);
+        virtual ~RCDriveCtrl() = default;
 
         virtual void servoCB(const deepracer_interfaces_pkg::msg::ServoCtrlMsg::SharedPtr msg) override;
         virtual bool loadModelReq(int requestSeqNum, std::string modelName, std::vector<int> modelMetadataSensors,
