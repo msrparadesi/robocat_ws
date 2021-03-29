@@ -578,7 +578,7 @@ namespace SysCtrl {
         RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set constant throttle in calibration mode");
     }
 
-    FTLDriveCtrl::FTLDriveCtrl(std::shared_ptr<rclcpp::Node> ctrlNodePtr, const std::string &subName)
+    RCDriveCtrl::RCDriveCtrl(std::shared_ptr<rclcpp::Node> ctrlNodePtr, const std::string &subName)
        : isActive_(false)
      {
         ctrlNode = ctrlNodePtr;
@@ -590,7 +590,7 @@ namespace SysCtrl {
 
         servoSub_ = ctrlNode->create_subscription<deepracer_interfaces_pkg::msg::ServoCtrlMsg>(subName,
                                                                                                qos,
-                                                                                               std::bind(&FTLDriveCtrl::servoCB,
+                                                                                               std::bind(&RCDriveCtrl::servoCB,
                                                                                                          this,
                                                                                                          std::placeholders::_1),
                                                                                                rclcpp::SubscriptionOptions(),
@@ -603,7 +603,7 @@ namespace SysCtrl {
         waitForService(servoGPIOClient_, ctrlNode);
    }
 
-    void FTLDriveCtrl::servoCB(const deepracer_interfaces_pkg::msg::ServoCtrlMsg::SharedPtr msg) {
+    void RCDriveCtrl::servoCB(const deepracer_interfaces_pkg::msg::ServoCtrlMsg::SharedPtr msg) {
         if(!isActive_ || !servoPub_) {
             return;
         }
@@ -613,7 +613,7 @@ namespace SysCtrl {
         servoPub_->publish(std::move(servoMsg));  // Publish it along.
     }
 
-    bool FTLDriveCtrl::loadModelReq(int requestSeqNum, std::string modelName, std::vector<int> modelMetadataSensors, 
+    bool RCDriveCtrl::loadModelReq(int requestSeqNum, std::string modelName, std::vector<int> modelMetadataSensors, 
                                      int trainingAlgorithm, int actionSpaceType, std::string imgFormat,
                                      int width, int height, int numChannels, 
                                      int lidarChannels, int platform, int task, int preProcess) {
@@ -630,11 +630,11 @@ namespace SysCtrl {
         (void)platform;
         (void)task;
         (void)preProcess;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot load model in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot load model in RoboCat mode");
         return false;
     }
 
-    void FTLDriveCtrl::setStateActive(bool isActive) {
+    void RCDriveCtrl::setStateActive(bool isActive) {
         isActive_ = isActive;
         // Stop car and straighten wheels when starting or stopping this state
         auto servoMsg = deepracer_interfaces_pkg::msg::ServoCtrlMsg();
@@ -645,37 +645,37 @@ namespace SysCtrl {
 
     }
 
-    std::string FTLDriveCtrl::getLoadModelStatus() {
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot get load model status in follow the leader mode.");
+    std::string RCDriveCtrl::getLoadModelStatus() {
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot get load model status in RoboCat mode.");
         return "error";
     }
 
-    void FTLDriveCtrl::getCalibration(int type, std::vector<int> &cal) {
+    void RCDriveCtrl::getCalibration(int type, std::vector<int> &cal) {
         (void)type;
         (void)cal;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Calibration information not available in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Calibration information not available in RoboCat mode");
     }
 
-    void FTLDriveCtrl::setCalibration(int type, const std::vector<int> & cal) {
+    void RCDriveCtrl::setCalibration(int type, const std::vector<int> & cal) {
         (void)type;
         (void)cal;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set calibrations in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set calibrations in RoboCat mode");
     }
 
-    void FTLDriveCtrl::getLedValue(std::vector<int> &ledValuesMap) {
+    void RCDriveCtrl::getLedValue(std::vector<int> &ledValuesMap) {
         (void)ledValuesMap;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot get LED values in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot get LED values in RoboCat mode");
     }
 
-    void FTLDriveCtrl::setLedValue(int redPwm, int greenPwm, int bluePwm) {
+    void RCDriveCtrl::setLedValue(int redPwm, int greenPwm, int bluePwm) {
         (void)redPwm;
         (void)greenPwm;
         (void)bluePwm;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set LED values in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set LED values in RoboCat mode");
     }
 
-    void FTLDriveCtrl::setConstantThrottle(float throttle) {
+    void RCDriveCtrl::setConstantThrottle(float throttle) {
         (void)throttle;
-        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set constant throttle in follow the leader mode");
+        RCLCPP_ERROR(ctrlNode->get_logger(), "Cannot set constant throttle in RoboCat mode");
     }
 }

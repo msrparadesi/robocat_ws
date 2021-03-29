@@ -36,14 +36,14 @@ namespace SysCtrl {
     #define AUTO_DRIVE_TOPIC "/deepracer_navigation_pkg/auto_drive"
     #define MANUAL_DRIVE_TOPIC "/webserver_pkg/manual_drive"
     #define CALIBRATION_DRIVE_TOPIC "/webserver_pkg/calibration_drive"
-    #define FTL_DRIVE_TOPIC "/ftl_navigation_pkg/ftl_drive"
+    #define RC_DRIVE_TOPIC "/rc_navigation_pkg/rc_drive"
 
     /// Available states.
     enum CtrlState {
         manual,
         autonomous,
         calibration,
-        followtheleader,
+        robocat,
         numStates
     };
 
@@ -172,7 +172,7 @@ namespace SysCtrl {
                 stateList_ = { {autonomous, std::make_shared<SysCtrl::AutoDriveCtrl>(this->shared_from_this(), AUTO_DRIVE_TOPIC)},
                            {manual, std::make_shared<SysCtrl::ManualDriveCtrl>(this->shared_from_this(), MANUAL_DRIVE_TOPIC)},
                            {calibration, std::make_shared<SysCtrl::CalibrationCtrl>(this->shared_from_this(), CALIBRATION_DRIVE_TOPIC)},
-                           {followtheleader, std::make_shared<SysCtrl::FTLDriveCtrl>(this->shared_from_this(), FTL_DRIVE_TOPIC)} };
+                           {robocat, std::make_shared<SysCtrl::RCDriveCtrl>(this->shared_from_this(), RC_DRIVE_TOPIC)} };
                 activeState_ = stateList_.find(manual);
                 activeState_->second->setStateActive(true);
                 initialized_ = true;
