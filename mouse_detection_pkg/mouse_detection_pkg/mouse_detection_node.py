@@ -147,7 +147,7 @@ class MouseDetectionNode(Node):
 
                 # Detect changes in images
                 detection_delta = cv2.absdiff(self.previous_sensor_data, self.current_sensor_data)
-                ret, thresh = cv2.threshold(detection_delta, 127, 255, 0)
+                ret, thresh = cv2.threshold(detection_delta, 64, 255, 0)
                 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 self.get_logger().info(f"Number of contours: {str(len(contours))}")
                 if len(contours) > 0 and len(contours) < 6:
