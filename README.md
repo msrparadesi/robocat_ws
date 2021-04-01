@@ -40,11 +40,6 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 
         source /opt/intel/openvino_2021/bin/setupvars.sh
 
-1. Create a workspace directory for the package:
-
-        mkdir -p ~/robocat_ws
-        cd ~/robocat_ws
-
 1. Clone the entire RoboCat sample project on the DeepRacer device.
 
         git clone https://github.com/msrparadesi/robocat_ws.git
