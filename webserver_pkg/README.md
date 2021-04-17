@@ -1,10 +1,10 @@
-# AWS DeepRacer Webserver Package for Follow the Leader(FTL) sample project
+# AWS DeepRacer Webserver Package for RoboCat sample project
 
 ## Overview
 
-The DeepRacer Web Server ROS package creates the *web_publisher_node* which is part of the Follow the Leader(FTL) sample project and will be launched from the ftl_launcher. For more information about the Follow the Leader(FTL) sample project, see [Follow the Leader(FTL) sample project](https://github.com/awsdeepracer/aws-deepracer-follow-the-leader-sample-project).
+The DeepRacer Web Server ROS package creates the *web_publisher_node* which is part of the RoboCat sample project and will be launched from the rc_launcher. For more information about the RoboCat sample project, see [RoboCat sample project](https://github.com/msrparadesi/robocat_ws).
 
-This node launches a Flask application as a background thread and creates service clients and subscribers for all the services and topics that are required by the APIs called from the DeepRacer vehicle console. This node acts as an interface between the AWS DeepRacer device console and the backend ROS services. This node was extended to provide more functionalities required for the Follow the Leader(FTL) sample project.
+This node launches a Flask application as a background thread and creates service clients and subscribers for all the services and topics that are required by the APIs called from the DeepRacer vehicle console. This node acts as an interface between the AWS DeepRacer device console and the backend ROS services. This node was extended to provide more functionalities required for the RoboCat sample project.
 
 ## License
 
@@ -14,7 +14,7 @@ The source code is released under [Apache 2.0](https://aws.amazon.com/apache-2-0
 
 ### Prerequisites
 
-The AWS DeepRacer device comes with all the pre-requisite packages and libraries installed to run the Follow the Leader(FTL) sample project. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
+The AWS DeepRacer device comes with all the pre-requisite packages and libraries installed to run the RoboCat sample project. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page.
 
 The webserver_pkg specifically depends on the following ROS2 packages as build and execute dependencies:
 
@@ -38,34 +38,29 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 
         source /opt/ros/foxy/setup.bash
 
-1. Create a workspace directory for the package:
+1. Clone the entire RoboCat sample project on the DeepRacer device.
 
-        mkdir -p ~/deepracer_ws
-        cd ~/deepracer_ws
-
-1. Clone the entire Follow the Leader(FTL) sample project on the DeepRacer device.
-
-        git clone https://github.com/awsdeepracer/aws-deepracer-follow-the-leader-sample-project.git
-        cd ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/
+        git clone https://github.com/msrparadesi/robocat_ws.git
+        cd ~/robocat_ws/
 
 1. Fetch unreleased dependencies:
 
-        cd ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/
+        cd ~/robocat_ws/
         rosws update
 
 1. Resolve the dependencies:
 
-        cd ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/ && apt-get update
+        cd ~/robocat_ws/ && apt-get update
         rosdep install -i --from-path . --rosdistro foxy -y
 
 1. Build the webserver_pkg, ctrl_pkg, sensor_fusion_pkg, deepracer_systems_pkg, device_info_pkg, i2c_pkg and deepracer_interfaces_pkg:
 
-        cd ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/ && colcon build --packages-select webserver_pkg ctrl_pkg sensor_fusion_pkg deepracer_systems_pkg device_info_pkg i2c_pkg deepracer_interfaces_pkg
+        cd ~/robocat_ws/ && colcon build --packages-select webserver_pkg ctrl_pkg sensor_fusion_pkg deepracer_systems_pkg device_info_pkg i2c_pkg deepracer_interfaces_pkg
 
 
 ## Usage
 
-The webserver_publisher_node provide basic system level functionality for the AWS DeepRacer application and Follow the Leader(FTL) sample project to work. Although the node is built to work with the AWS DeepRacer application and Follow the Leader(FTL) sample project, it can be run independently for development/testing/debugging purposes.
+The webserver_publisher_node provide basic system level functionality for the AWS DeepRacer application and RoboCat sample project to work. Although the node is built to work with the AWS DeepRacer application and RoboCat sample project, it can be run independently for development/testing/debugging purposes.
 
 ### Run the node
 
@@ -75,9 +70,9 @@ To launch the built webserver_publisher_node as root user on the AWS DeepRacer d
 
         sudo su
 
-1. Navigate to the Follow the Leader(FTL) workspace:
+1. Navigate to the RoboCat workspace:
 
-        cd ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/
+        cd ~/robocat_ws/
 
 1. Source the ROS2 Foxy setup bash script:
 
@@ -85,7 +80,7 @@ To launch the built webserver_publisher_node as root user on the AWS DeepRacer d
 
 1. Source the setup script for the installed packages:
 
-        source ~/deepracer_ws/aws-deepracer-follow-the-leader-sample-project/deepracer_follow_the_leader_ws/install/setup.bash 
+        source ~/robocat_ws/install/setup.bash 
 
 1. Launch the webserver_publisher_node using the launch script:
 
@@ -151,10 +146,10 @@ The webserver_publisher_node provides the core functionality to launch the FLASK
 | /deepracer_systems_pkg/begin_update | BeginSoftwareUpdateSrv | Client to the begin update service to trigger the update of the aws-deepracer debian packages to the latest software version available. |
 | /deepracer_systems_pkg/software_update_state | SoftwareUpdateStateSrv | Client to software update state service to get the current software update state from the states [ UPDATE_UNKNOWN, UP_TO_DATE, UPDATE_AVAILABLE, UPDATE_PENDING, UPDATE_IN_PROGRESS ]. |
 | /ctrl_pkg/autonomous_throttle | NavThrottleSrv | Client to autonomous throttle service to set the scale value to multiply to the throttle during autonomous navigation. |
-| /ftl_navigation_pkg/set_max_speed | SetMaxSpeedSrv | Client to set Follow the Leader(FTL) max speed percentage scale value during follow the Leader(FTL) navigation. |
+| /rc_navigation_pkg/set_max_speed | SetMaxSpeedSrv | Client to set RoboCat max speed percentage scale value during RoboCat navigation. |
 | /deepracer_systems_pkg/get_otg_link_state | OTGLinkStateSrv | Client to the get otg link state service to get the current connection status of micro-USB cable to the DeepRacer device. |
 
 ## Resources
 
-* AWS DeepRacer Opensource getting started: [https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/awsdeepracer/aws-deepracer-launcher/blob/main/getting-started.md)
-* Follow the Leader(FTL) sample project getting started: [https://github.com/awsdeepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md](https://github.com/awsdeepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md)
+* AWS DeepRacer Opensource getting started: [https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md)
+* Follow the Leader(FTL) sample project getting started: [https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md)

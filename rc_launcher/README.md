@@ -1,8 +1,8 @@
-# AWS DeepRacer RoboCat sample project
+# AWS DeepRacer RoboCat Launcher Package
 
 ## Overview
 
-The RoboCat project is a sample application built on top of the existing AWS DeepRacer application that was conceived as a solution to scare away mice. Mice are noctural animals and can detect movement from far away. The RoboCat project uses an infrared camera attached to an AWS DeepRacer to detect motion in a dark environment and move forward and backward quickly once motion is detected. Most of the code used in the RoboCat project has been derived from the [Follow the Leader(FTL) sample project](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project).
+The RoboCat sample project is an sample application built on top of the existing AWS DeepRacer application uses object detection machine learning model through which the AWS DeepRacer device can identify and follow a person. For detailed information on Follow the Leader(FTL) sample project, see Follow the Leader(FTL) sample project [Getting Started](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md) section.
 
 ## License
 
@@ -12,13 +12,29 @@ The source code is released under [Apache 2.0](https://aws.amazon.com/apache-2-0
 
 ### Prerequisites
 
-The AWS DeepRacer device comes with all the pre-requisite packages and libraries installed to run the RoboCat sample project. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page. The RoboCat sample project requires the AWS DeepRacer application to be installed on the device as it leverages most of the packages from the core application.
+The AWS DeepRacer device comes with all the pre-requisite packages and libraries installed to run the RoboCat sample project. More details about pre installed set of packages and libraries on the DeepRacer, and installing required build systems can be found in the [Getting Started](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md) section of the AWS DeepRacer Opensource page. RoboCat sample project requires the AWS DeepRacer application to be installed on the device as it leverages most of the packages from the core application.
 
-The following are the additional software and hardware requirements to get the RoboCat sample project to work on the AWS DeepRacer device. 
+The following are the additional software and hardware requirements to get the RoboCat sample project to work on the AWS DeepRacer device.
 
-1. **Obtain an infrared camera:** The infrared camera used in this project was purchased from [Amazon](https://www.amazon.com/gp/product/B07DWWSWNH/). Replace the existing camera(s) on the AWS DeepRacer device with this infrared camera.
+1. **Download and Optimize the object detection model:** Follow the [instructions](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/download-and-convert-object-detection-model.md) to download and optimize the object detection model and copy it to the required location on the AWS DeepRacer device.
 
 1. **Calibrate the AWS DeepRacer (optional):** Follow the [instructions](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-calibrate-vehicle.html) to calibrate the mechanics of your AWS DeepRacer Vehicle. This should be done so that the vehicle performance is optimal and it behaves as expected.
+
+    1. Switch to root user:
+
+            sudo su
+
+    1. Navigate to the OpenVino installation directory:
+
+            cd /opt/intel/openvino_2021/install_dependencies
+
+    1. Set the environment variables required to run Intel OpenVino scripts:
+
+            source /opt/intel/openvino_2021/bin/setupvars.sh
+
+    1. Run the dependency installation script for Intel Neural Compute Stick:
+
+            ./install_NCS_udev_rules.sh
 
 ## Downloading and Building
 
@@ -40,7 +56,7 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 
         source /opt/intel/openvino_2021/bin/setupvars.sh
 
-1. Clone the entire RoboCat sample project on the DeepRacer device.
+1. Clone the entire Follow the Leader(FTL) sample project on the DeepRacer device.
 
         git clone https://github.com/msrparadesi/robocat_ws.git
         cd ~/robocat_ws/
@@ -61,6 +77,7 @@ Open up a terminal on the DeepRacer device and run the following commands as roo
 1. Build the packages in the workspace
 
         cd ~/robocat_ws/ && colcon build
+
 
 ## Usage
 
@@ -84,7 +101,7 @@ To launch the RoboCat sample application as root user on the AWS DeepRacer devic
 
         source ~/robocat_ws/install/setup.bash
 
-1. Launch the nodes required for RoboCat sample project:
+1. Launch the nodes required for follow the leader sample project:
 
         ros2 launch rc_launcher rc_launcher.py
 
@@ -96,7 +113,7 @@ Once the rc_launcher has been kicked-off, open up a adjacent new terminal as roo
 
         sudo su
 
-1. Navigate to the RoboCat workspace:
+1. Navigate to the Follow the Leader(FTL) workspace:
 
         cd ~/robocat_ws/
 
@@ -115,6 +132,35 @@ Once the rc_launcher has been kicked-off, open up a adjacent new terminal as roo
 1. Enable “robocat” mode using the below ros2 service call
 
         ros2 service call /ctrl_pkg/enable_state deepracer_interfaces_pkg/srv/EnableStateSrv "{is_active: True}"
+
+### Changing the MAX_SPEED scale of the DeepRacer:
+
+The MAX_SPEED scale of the DeepRacer can be modified using ros2 service call in case the car isn’t moving as expected. This can occur due to multiple reasons not limited to vehicle battery percentage, surface on which the car is being operated etc.
+
+1. Switch to root user before you source the ROS2 installation:
+
+        sudo su
+
+1. Navigate to the Follow the Leader(FTL) workspace:
+
+        cd ~/robocat_ws/
+
+1. Source the ROS2 Foxy setup bash script:
+
+        source /opt/ros/foxy/setup.bash
+
+1. Source the setup script for the installed packages:
+
+        source ~/robocat_ws/install/setup.bash
+
+1. Change the MAX SPEED to xx% of the MAX Scale:
+
+        ros2 service call /rc_navigation_pkg/set_max_speed deepracer_interfaces_pkg/srv/SetMaxSpeedSrv "{max_speed_pct: 0.xx}"
+
+    Example: Change the MAX SPEED to 75% of the MAX Scale:
+
+        ros2 service call /rc_navigation_pkg/set_max_speed deepracer_interfaces_pkg/srv/SetMaxSpeedSrv "{max_speed_pct: 0.75}"
+
 
 ## Launch Files
 
@@ -283,11 +329,13 @@ Applies to the object_detection_node
 
 | Parameter Name   | Description  |
 | ---------------- |  ----------- |
-| DEVICE (optional) | Uses CPU for inference by default, even if removed. |
+|DEVICE (optional) | If set as MYRIAD, will use the Intel Compute Stick 2 for inference. Else uses CPU for inference by default, even if removed. |
+| PUBLISH_DISPLAY_OUTPUT | Set to True/False if the inference output images need to be published to localhost using web_video_server. |
 
 ## Resources
 
 * AWS DeepRacer Opensource getting started: [https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-launcher/blob/main/getting-started.md)
-* Follow the Leader(FTL sample project: [https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project)
 * Follow the Leader(FTL) sample project getting started: [https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/getting-started.md)
+* Instructions to download and optimize the object detection model: [https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/download-and-convert-object-detection-model.md](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project/blob/main/download-and-convert-object-detection-model.md)
 * Instructions to calibrate your AWS DeepRacer: [https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-calibrate-vehicle.html](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-calibrate-vehicle.html)
+
