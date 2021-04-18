@@ -2,7 +2,9 @@
 
 ## Overview
 
-The RoboCat project is a sample application built on top of the existing AWS DeepRacer application that was conceived as a solution to scare away mice. Mice are noctural animals and can detect movement from far away. The RoboCat project uses an infrared camera attached to an AWS DeepRacer to detect motion in a dark environment and move forward and backward quickly once motion is detected. Most of the code used in the RoboCat project has been derived from the [Follow the Leader(FTL) sample project](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project).
+The RoboCat project is a sample application built on top of the existing AWS DeepRacer application that was conceived as a solution to scare away mice. Mice are noctural animals and can detect movement from far away. The RoboCat project uses an infrared camera attached to an AWS DeepRacer to detect motion in a dark environment and move forward and backward quickly once motion is detected. Motion is detected by using OpenCV library across multiple frames of the video using logic similar to this [PyImageSearch example](https://www.pyimagesearch.com/2015/05/25/basic-motion-detection-and-tracking-with-python-and-opencv/). Most of the code used in the RoboCat project has been derived from the [Follow the Leader(FTL) sample project](https://github.com/aws-deepracer/aws-deepracer-follow-the-leader-sample-project). A short demo of AWS DeepRacer RoboCat sample project is shown in the image below.
+
+![RoboCat Demo](https://github.com/msrparadesi/resources/robocat-demo.gif)
 
 ## License
 
